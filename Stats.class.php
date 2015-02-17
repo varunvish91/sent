@@ -44,16 +44,24 @@
     public function __construct() {}
     
     public static function isValidInteger($value) {
-      return is_int($value);
+      return ctype_digit($value);
     }
 
     public static function isValidTime($numberOfSecs) {
-      $dateTime = date(date('Y/m/d H:i:s', $numberOfSecs);
-      return $dateTime;
+      $dateTime = date('Y/m/d H:i:s', $numberOfSecs);
+      if ($dateTime != false && $numberOfSecs > 0 && ctype_digit($numberOfSecs)){
+        echo $dateTime. PHP_EOL;
+      } else {
+        echo "Not a valid time" . PHP_EOL;
+      }
     }
 
-    public static function isValudString($string) {
-      return is_string($string);
+    public static function isValidString($string) {
+      if (is_string($string)) {
+        echo "is a valid string" . PHP_EOL;
+      } else {
+        echo "not a valid string" . PHP_EOL;
+      }
     }
 
     // need to check if the string matches true or false
