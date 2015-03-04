@@ -35,7 +35,6 @@
   
   
   function runIt() { 
-    $mysqli = new mysqli("localhost", "root", "Password1704", "API") or die ("error connecting to DB");
    $returnResult;
     if (isset($_GET['content'])) {
       $jsonContent = json_decode($_GET['content']);
@@ -46,7 +45,9 @@
           //$returnResult = getAllFields($jsonContent->limit, $mysqli); 
         
         } else {
-          $returnResult = query($jsonContent);  
+          $returnResult = query($jsonContent); 
+          echo json_encode($returnResult);
+        
         }
       } else {
         echo "Required Fields entry\n";
@@ -56,29 +57,52 @@
   
 
   function query($json) {
+    $list = array();
     $ids = $json->fields->id;
-    $queryParams = $json->fields->AppDetails;
-    $table = "AppDetails";
-    // query the AppDetails db
-    foreach($ids as $id) {
-      $sql = "SELECT `id`,";
-      if (count($queryParams) == 0) {
-        $sql .= "*";
-      } else {
-        for ($i = 0; $i < count($queryParams); $i++) {
-          $param = $queryParams[$i];
-          if ($i == 0) {
-            $sql .= "`$param`";
-          } else {
-            $sql .= ",`$param`";
+    $mysqli = new mysqli("localhost", "root", "Password1704", "API") or die ("error connecting to DB");
+    if (isset($json->fields->AppDetails)) { 
+      $queryParams = $json->fields->AppDetails;
+      $table = "AppDetails";
+      foreach($ids as $id) {
+        $sql = "SELECT `id`,";
+        if (count($queryParams) == 0) {
+          $sql .= "*";
+        } else {
+          for ($i = 0; $i < count($queryParams); $i++) {
+            $param = $queryParams[$i];
+            if ($i == 0) {
+              $sql .= "`$param`";
+            } else {
+              $sql .= ",`$param`";
+            }
+          }
+
+          $sql .= " FROM `$table` WHERE `id` = '$id' LIMIT 0,". $json->limit;
+          $result = $mysqli->query($sql) or die ("error");
+          while ($row = $result->fetch_assoc()) {
+            $list[$id]['appDetails'] = $row;
           }
         }
-
-        $sql .= " FROM `$table` WHERE `id` = '$id' LIMIT 0,". $json->limit;
-        echo $sql."\n";
       }
     }
+
+    if (isset($json->fields->velocity)) {
+      $table = "velocity";
+      $queryParams = $json->fields->velocity;
+      foreach ($ids as $id) {
+        $sql = "SELECT `month`, `day`, `score`  FROM `$table` WHERE `id` = '$id' LIMIT 0,".$json->limit;
+      
+        $result = $mysqli->query($sql) or die ("error");
+        while ($row = $result->fetch_assoc()) {
+          $list[$id]['appVelocity'][] = $row;
+        }
+      }
+    }
+
+    return $list;
   }
+
+
 
   function createTestZero() {
     $item = array();
@@ -101,7 +125,7 @@
   function createTestThree() {
     $item = array();
     $item["fields"] = array();
-    $item["limit"] = 1;
+    $item["limit"] = 30;
     // get id of 1 and 2
     $item["fields"]["id"][] = 1;
     $item["fields"]["id"][] = 2;
@@ -110,6 +134,8 @@
     $item["fields"]["AppDetails"][] = "velocity_score";
     $item["fields"]["AppDetails"][] = "dau";
     $item["fields"]["AppDetails"][] = "rank";
+    $item["fields"]["AppDetails"][] = "title";
+    $item["fields"]["velocity"] = array();
     return json_encode($item);
   }
   
