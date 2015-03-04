@@ -1,0 +1,12 @@
+Syntax is the following:
+
+If an empty JSON string is supplied then return all the data
+json string is sentas {data:[], Limit, }
+return whatever limit is
+
+
+supply an appid to get information for that application, add parameters to pull the information about that application
+
+If you want data that doesn't really pertain to a specific application then you just put in the fields you want without an ID
+
+If you want comparative data then just add it to id's array and it will pull that information for the arrays
