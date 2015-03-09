@@ -1,43 +1,11 @@
+
 <?php
-  header("Content-type:text/plain");
-  ini_set('display_errors',1);
-  ini_set('display_startup_errors',1);
-  error_reporting(-1);
-  
-  /* 
-     Test suite
-     -  Empty paramaters No limit
-     -  Empty paramaters with limit
-     -  just id
-     -  id with a few query paramaters
-     -  id with a few other query paramaters
-     -  ids with a few query paramaters
-     -  just some query paramaters no specific ID with limit
 
-
-  */
-  
-/*  echo "TestOne\n";
-  $data = createTestOne();
-  $_GET['content'] = $data;
-  runIt();
-*/
-  echo "TestThree\n";
-  $data = createTestThree();
-  $_GET['content'] = $data;
-  runIt();
-
-/*  echo "TestZero\n";
-  $data = createTestZero();
-  $_GET['content'] = $data;
-  runIt();
-  */
-  
-  
-  function runIt() { 
+runIt();
+  function runIt() {
    $returnResult;
     if (isset($_GET['content'])) {
-      $jsonContent = json_decode($_GET['content']);
+      $jsonContent = json_decode($_GET['content']) or die ("error decoding json");
       // get the Fields, this is required
       if (isset($jsonContent->fields)) {
         if (count($jsonContent->fields) == 0) {
@@ -46,8 +14,14 @@
         
         } else {
           $returnResult = query($jsonContent); 
-          echo json_encode($returnResult);
-        
+          if (isset($jsonContent->callback)) {
+            header('Content-Type: text/javascript; charset=utf8');
+            echo $jsonContent->callback.'('.json_encode($returnResult).');';
+            
+          } else {
+            header('Content-Type: application/json; charset=utf8');
+            echo json_encode($returnResult);
+          }
         }
       } else {
         echo "Required Fields entry\n";
@@ -99,6 +73,30 @@
       }
     }
 
+    if (isset($json->fields->EarnedMedia)) {
+      $table = "EarnedMedia";
+      $queryParams = $json->fields->EarnedMedia;
+      // pull everything for that id where country = something
+      if (count($json->fields->EarnedMedia) == 0) {
+        // pull everything forthe users
+        foreach($ids as $id) {
+          $sql = "SELECT `country`, `value` FROM `$table` WHERE `id` = '$id' LIMIT 0,".$json->limit;
+          $result = $mysqli->query($sql) or die ("error");
+          while ($row = $result->fetch_assoc()) {
+            $list[$id]['earnedMedia'][] = $row;
+          }
+        }
+      } else {
+        $country = $json->fields->EarnedMedia->country; 
+        $sql = "SELECT `country`,`value` FROM `$table` WHERE `id` = '$id' AND `country` = '$country' LIMIT 0,".$json->limit;
+        $result = $mysqli->query($sql) or die ("error");
+        while($row = $result->fetch_assoc()) {
+          $list[$id]['earnedMedia'][] = $row;
+        }
+      }
+    }
+
+
     return $list;
   }
 
@@ -126,6 +124,7 @@
     $item = array();
     $item["fields"] = array();
     $item["limit"] = 30;
+    $item['callback'] = "receiver";
     // get id of 1 and 2
     $item["fields"]["id"][] = 1;
     $item["fields"]["id"][] = 2;
