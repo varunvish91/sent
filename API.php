@@ -1,8 +1,6 @@
 
 <?php
 require('DataObject.php');
-$data = array("limit" => 1);
-$_GET['content'] = json_encode($data);
 runIt();
   function runIt() {
    $returnResult;
