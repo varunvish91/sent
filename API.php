@@ -1,47 +1,59 @@
 
 <?php
-
+require('DataObject.php');
+$data = array("limit" => 1);
+$_GET['content'] = json_encode($data);
 runIt();
   function runIt() {
    $returnResult;
-    if (isset($_GET['content'])) {
+    if (!isset($_GET['content'])) {
+      $jsonContent->{"limit"} = 30;
+    } else
       $jsonContent = json_decode($_GET['content']) or die ("error decoding json");
-      // get the Fields, this is required
-      if (isset($jsonContent->fields)) {
-        if (count($jsonContent->fields) == 0) {
-          echo "Full DB scan not available yet";
-          //$returnResult = getAllFields($jsonContent->limit, $mysqli); 
-        
-        } else {
-          $returnResult = query($jsonContent); 
-          if (isset($jsonContent->callback)) {
-            header('Content-Type: text/javascript; charset=utf8');
-            echo $jsonContent->callback.'('.json_encode($returnResult).');';
-            
-          } else {
-            header('Content-Type: application/json; charset=utf8');
-            echo json_encode($returnResult);
-          }
-        }
-      } else {
-        echo "Required Fields entry\n";
-      }
+    if (!isset($jsonContent->fields) || count($jsonContent->fields) == 0) {
+      $returnResult = getAllAppIdsByRank($jsonContent);
+      $jsonContent->fields->AppDetails = array();
+      $jsonContent->fields->SocialBrand = array();
+      $jsonContent->fields->EarnedMedia = array();
+      $jsonContent->fields->Velocity = array();
     }
+    $returnResult = query($jsonContent);
+    $stringRep = $returnResult->getResultAsString();
+    if (isset($jsonContent->callback)) {
+      header('Content-Type: text/javascript; charset=utf8');
+      echo $jsonContent->callback.'('.$stringRep.');';
+    } else {
+      header('Content-Type: application/json; charset=utf8');
+      echo $stringRep;
+    }
+   }
+  function getAllAppIdsByRank($jsonContent) {
+    $mysqli = new mysqli("localhost", "root", "Password1704", "API") or die ("error connecting to DB");
+    $sql = "SELECT `id` FROM `AppDetails`ORDER BY `rank` ASC LIMIT 0,".$jsonContent->limit;
+    $result = $mysqli->query($sql) or die ("error");
+    $list = array();
+    while ($row = $result->fetch_assoc()) {
+      $list[] = $row['id'];
+    }
+    $jsonContent->fields->id =  $list;
+    return $jsonContent;
   }
   
 
   function query($json) {
     $list = array();
+    $dataList = new DataObjectsList();
     $ids = $json->fields->id;
     $mysqli = new mysqli("localhost", "root", "Password1704", "API") or die ("error connecting to DB");
     if (isset($json->fields->AppDetails)) { 
       $queryParams = $json->fields->AppDetails;
       $table = "AppDetails";
       foreach($ids as $id) {
-        $sql = "SELECT `id`,";
+        $sql = "SELECT ";
         if (count($queryParams) == 0) {
           $sql .= "*";
         } else {
+          $sql .= "`id`,";
           for ($i = 0; $i < count($queryParams); $i++) {
             $param = $queryParams[$i];
             if ($i == 0) {
@@ -50,25 +62,26 @@ runIt();
               $sql .= ",`$param`";
             }
           }
+        }
 
-          $sql .= " FROM `$table` WHERE `id` = '$id' LIMIT 0,". $json->limit;
-          $result = $mysqli->query($sql) or die ("error");
-          while ($row = $result->fetch_assoc()) {
-            $list[$id]['appDetails'] = $row;
-          }
+        $sql .= " FROM `$table` WHERE `id` = '$id' LIMIT 0,". $json->limit;
+        $result = $mysqli->query($sql) or die ("error\n");
+        while ($row = $result->fetch_assoc()) {
+          $dataList->insertDocument($id, $row);
         }
       }
     }
-
-    if (isset($json->fields->velocity)) {
+    
+    if (isset($json->fields->Velocity)) {
       $table = "velocity";
-      $queryParams = $json->fields->velocity;
+      $queryParams = $json->fields->Velocity;
       foreach ($ids as $id) {
         $sql = "SELECT `month`, `day`, `score`  FROM `$table` WHERE `id` = '$id' LIMIT 0,".$json->limit;
-      
         $result = $mysqli->query($sql) or die ("error");
+        $index = 0;
         while ($row = $result->fetch_assoc()) {
-          $list[$id]['appVelocity'][] = $row;
+          $dataList->insertCollection($id, $row, "Velocity", $index);
+          $index++;
         }
       }
     }
@@ -82,16 +95,20 @@ runIt();
         foreach($ids as $id) {
           $sql = "SELECT `country`, `value` FROM `$table` WHERE `id` = '$id' LIMIT 0,".$json->limit;
           $result = $mysqli->query($sql) or die ("error");
+          $index = 0;
           while ($row = $result->fetch_assoc()) {
-            $list[$id]['earnedMedia'][] = $row;
+            $dataList->insertCollection($id, $row, "EarnedMedia", $index);
+            $index++;
           }
         }
       } else {
         $country = $json->fields->EarnedMedia->country; 
         $sql = "SELECT `country`,`value` FROM `$table` WHERE `id` = '$id' AND `country` = '$country' LIMIT 0,".$json->limit;
         $result = $mysqli->query($sql) or die ("error");
+        $index = 0;
         while($row = $result->fetch_assoc()) {
-          $list[$id]['earnedMedia'][] = $row;
+          $dataList->insertCollection($id, $row, "EarnedMedia", $index);
+          $index++;
         }
       }
     }
@@ -104,8 +121,10 @@ runIt();
         foreach($ids as $id) {
           $sql = "SELECT * FROM `SocialBrand` WHERE `id` = '$id' LIMIT 0,". $json->limit;
           $result = $mysqli->query($sql) or die ("error\n");
+          $index = 0;
           while ($row = $result->fetch_assoc()) {
-            $list[$id]['socialBrand'][] = $row;
+            $dataList->insertCollection($id, $row, "SocialBrand", $index);
+            $index++;
           }
         } 
       
@@ -124,69 +143,16 @@ runIt();
           $sql .= $where . " AND `id` = '$id' LIMIT 0,". $json->limit; 
         
           $result = $mysqli->query($sql) or die ("error\n");
+          $index = 0;
           while ($row = $result->fetch_assoc()) {
-            $list[$id]['socialBrand'][] = $row;
+            $dataList->insertCollection($id, $row, "SocialBrand", $index);
+            $index++;
           }
-      
         }
       }
-      
-
     }
-
-
-    return $list;
+    return $dataList;
   }
-
-
-
-  function createTestZero() {
-    $item = array();
-    return json_encode($item);
-  }
-  function createTestOne() {
-    $item = array();
-    $item["fields"] = array();
-    return json_encode($item);
-  }
-  
-  function createTestTwo() {
-    $item = array();
-    $item["fields"] = array();
-    $item["limit"] = 2;
-    return json_encode($item);
-  
-  }
-  
-  function createTestThree() {
-    $item = array();
-    $item["fields"] = array();
-    $item["limit"] = 30;
-    $item['callback'] = "receiver";
-    // get id of 1 and 2
-    $item["fields"]["id"][] = 1;
-    $item["fields"]["id"][] = 2;
-    
-    // get velocity score of 1 and 2
-    $item["fields"]["AppDetails"][] = "velocity_score";
-    $item["fields"]["AppDetails"][] = "dau";
-    $item["fields"]["AppDetails"][] = "rank";
-    $item["fields"]["AppDetails"][] = "title";
-    $item["fields"]["velocity"] = array();
-    return json_encode($item);
-  }
-  
-
-
-
-
-
-
-
-
-
-
-
 
 
 ?>
