@@ -33,7 +33,7 @@ runIt();
     while ($row = $result->fetch_assoc()) {
       $list[] = $row['id'];
     }
-    $jsonContent->fields->id =  $list;
+    $jsonContent->fields->{"id"} = $list;
     return $jsonContent;
   }
   

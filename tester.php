@@ -28,8 +28,9 @@
 
   function createTestFive() {
     $item = array();
-    $item["limit"] = 3;
+    $item["limit"] = 1;
     $item["callback"] = "hellowrold";
+    $item["fields"] = array();
     return json_encode($item);
   }
 ?>
