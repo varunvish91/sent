@@ -21,6 +21,8 @@
     $item["fields"]["AppDetails"][] = "rank";
     $item["fields"]["AppDetails"][] = "title";
     $item["fields"]["EarnedMedia"]['country'] = "Japan";
+    $item["fields"]["SocialBrand"] = array();
+
     return json_encode($item);
   }
 ?>

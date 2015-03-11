@@ -96,6 +96,44 @@ runIt();
       }
     }
 
+    if (isset($json->fields->SocialBrand)) {
+      $table = "SocialBrand";
+      $queryParams = $json->fields->EarnedMedia;
+      if (count($json->fields->SocialBrand) == 0) {
+        // db read
+        foreach($ids as $id) {
+          $sql = "SELECT * FROM `SocialBrand` WHERE `id` = '$id' LIMIT 0,". $json->limit;
+          $result = $mysqli->query($sql) or die ("error\n");
+          while ($row = $result->fetch_assoc()) {
+            $list[$id]['socialBrand'][] = $row;
+          }
+        } 
+      
+      } else {
+        foreach($ids as $id) { 
+          $sql = "SELECT ";
+          $where = " WHERE ";
+          foreach ($json->fields->SocialBrand as $key => $value) {
+            $sql .= "`$key`, ";
+            $where .= "`$key` = '$value',";
+          }
+          $sql = substr($sql, 0, -2);
+          $sql .= " FROM `$table`";
+
+          $where = substr($where, 0, -1);
+          $sql .= $where . " AND `id` = '$id' LIMIT 0,". $json->limit; 
+        
+          $result = $mysqli->query($sql) or die ("error\n");
+          while ($row = $result->fetch_assoc()) {
+            $list[$id]['socialBrand'][] = $row;
+          }
+      
+        }
+      }
+      
+
+    }
+
 
     return $list;
   }
