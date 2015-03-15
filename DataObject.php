@@ -61,7 +61,7 @@
     }
 
     public function getResultAsString() {
-      return json_encode($this->_list);
+      return json_encode($this->_list, JSON_NUMERIC_CHECK);
     }
     
     public function printList() {

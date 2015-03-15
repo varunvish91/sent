@@ -1,6 +1,6 @@
 <?php
   include('API.php');
-  $data = createTestFive();
+  $data = createTestFour();
   $_GET['content'] = $data;
   $result = runIt();
   echo "\n";
