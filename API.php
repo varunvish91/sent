@@ -10,6 +10,7 @@ runIt();
       $jsonContent = json_decode($_GET['content']) or die ("error decoding json");
     if (!isset($jsonContent->fields) || count($jsonContent->fields) == 0) {
       $returnResult = getAllAppIdsByRank($jsonContent);
+      $jsonContent->fields->WordData = array();
       $jsonContent->fields->AppDetails = array();
       $jsonContent->fields->SocialBrand = array();
       $jsonContent->fields->EarnedMedia = array();
@@ -144,6 +145,23 @@ runIt();
           $index = 0;
           while ($row = $result->fetch_assoc()) {
             $dataList->insertCollection($id, $row, "SocialBrand", $index);
+            $index++;
+          }
+        }
+      }
+    }
+
+    if (isset($json->fields->WordData)) {
+      $table = "WordData";
+      $queryParams = $json->fields->WordData;
+      if (count ($json->fields->WordData) == 0) {
+        //db read
+        foreach($ids as $id) {
+          $sql = "SELECT * FROM `WordData` WHERE `id` = '$id' LIMIT 0,".$json->limit;
+          $result = $mysqli->query($sql) or die ($mysqli->error);
+          $index = 0;
+          while ($row = $result->fetch_assoc()) {
+            $dataList->insertCollection($id, $row, $table, $index);
             $index++;
           }
         }

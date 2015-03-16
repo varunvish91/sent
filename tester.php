@@ -1,11 +1,8 @@
 <?php
-  header("text/plain");
-  $data = createTestFour();
-  echo json_encode($data);
-  exit();
+  require('API.php');
+  $data = createTestFive();
   $_GET['content'] = $data;
   $result = runIt();
-  print_r ($result);
 
 
   function createTestFour() {
