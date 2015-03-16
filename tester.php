@@ -1,10 +1,11 @@
 <?php
-  include('API.php');
+  header("text/plain");
   $data = createTestFour();
+  echo json_encode($data);
+  exit();
   $_GET['content'] = $data;
   $result = runIt();
-  echo "\n";
-  
+  print_r ($result);
 
 
   function createTestFour() {

@@ -63,7 +63,7 @@ runIt();
         }
 
         $sql .= " FROM `$table` WHERE `id` = '$id' LIMIT 0,". $json->limit;
-        $result = $mysqli->query($sql) or die ("error\n");
+        $result = $mysqli->query($sql) or die ("error\n". $mysqli->error);
         while ($row = $result->fetch_assoc()) {
           $dataList->insertDocument($id, $row);
         }
@@ -75,7 +75,7 @@ runIt();
       $queryParams = $json->fields->Velocity;
       foreach ($ids as $id) {
         $sql = "SELECT `month`, `day`, `score`  FROM `$table` WHERE `id` = '$id' LIMIT 0,".$json->limit;
-        $result = $mysqli->query($sql) or die ("error");
+        $result = $mysqli->query($sql) or die ($mysqli->error);
         $index = 0;
         while ($row = $result->fetch_assoc()) {
           $dataList->insertCollection($id, $row, "Velocity", $index);
@@ -92,7 +92,7 @@ runIt();
         // pull everything forthe users
         foreach($ids as $id) {
           $sql = "SELECT `country`, `value` FROM `$table` WHERE `id` = '$id' LIMIT 0,".$json->limit;
-          $result = $mysqli->query($sql) or die ("error");
+          $result = $mysqli->query($sql) or die ($mysqli->error);
           $index = 0;
           while ($row = $result->fetch_assoc()) {
             $dataList->insertCollection($id, $row, "EarnedMedia", $index);
@@ -102,7 +102,7 @@ runIt();
       } else {
         $country = $json->fields->EarnedMedia->country; 
         $sql = "SELECT `country`,`value` FROM `$table` WHERE `id` = '$id' AND `country` = '$country' LIMIT 0,".$json->limit;
-        $result = $mysqli->query($sql) or die ("error");
+        $result = $mysqli->query($sql) or die ($mysqli->error);
         $index = 0;
         while($row = $result->fetch_assoc()) {
           $dataList->insertCollection($id, $row, "EarnedMedia", $index);
@@ -118,7 +118,7 @@ runIt();
         // db read
         foreach($ids as $id) {
           $sql = "SELECT * FROM `SocialBrand` WHERE `id` = '$id' LIMIT 0,". $json->limit;
-          $result = $mysqli->query($sql) or die ("error\n");
+          $result = $mysqli->query($sql) or die ($mysqli->error);
           $index = 0;
           while ($row = $result->fetch_assoc()) {
             $dataList->insertCollection($id, $row, "SocialBrand", $index);
@@ -140,7 +140,7 @@ runIt();
           $where = substr($where, 0, -1);
           $sql .= $where . " AND `id` = '$id' LIMIT 0,". $json->limit; 
         
-          $result = $mysqli->query($sql) or die ("error\n");
+          $result = $mysqli->query($sql) or die ($mysqli->error);
           $index = 0;
           while ($row = $result->fetch_assoc()) {
             $dataList->insertCollection($id, $row, "SocialBrand", $index);
