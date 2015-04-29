@@ -44,34 +44,39 @@
     public function __construct() {}
     
     public static function isValidInteger($value) {
-      return ctype_digit($value);
+      
+      return (ctype_digit($value) && isset($value)); 
     }
 
     public static function isValidTime($numberOfSecs) {
       $dateTime = date('Y/m/d H:i:s', $numberOfSecs);
-      if ($dateTime != false && $numberOfSecs > 0 && ctype_digit($numberOfSecs)){
-        echo $dateTime. PHP_EOL;
+      if ($dateTime != false && $numberOfSecs > 0 && ctype_digit($numberOfSecs) && isset($numberOfSecs)){
+        return true;
       } else {
-        echo "Not a valid time" . PHP_EOL;
+        return false;
       }
     }
 
     public static function isValidString($string) {
-      if (is_string($string)) {
-        echo "is a valid string" . PHP_EOL;
+      if (is_string($string) && isset($string)) {
+        return true;
       } else {
-        echo "not a valid string" . PHP_EOL;
+        return false;
       }
     }
 
     // need to check if the string matches true or false
     // since it is coming in as a string
     public static function isValidBoolean($string) {
-      if ($string == "true" || $string == "false") {
+      if (isset($string) && ($string == "true" || $string == "false")) {
         return true;
       } 
       return false;
     }
+
+    public static function commit() {
+      
+    } 
     
   }
 

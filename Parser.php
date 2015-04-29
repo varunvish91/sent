@@ -51,6 +51,8 @@
     } else {
       $returnResult['error']['code'] = 1;
       $returnResult['error']['reason'] = "No Device ID";
+      echo json_encode($returnResult);
+      exit();
     }
 
     if (Stats::isValidInteger($data['playerID'])) {
@@ -58,6 +60,8 @@
     } else {
       $returnResult['error']['code'] = 1;
       $returnResult['error']['reason'] = "No Player ID";
+      echo json_encode($returnResult);
+      exit();
     }
 
     if (Stats::isValidTime($data['timeEnteredApp'])) {
@@ -292,7 +296,10 @@
     echo json_encode($returnResult);
   }
 
-
+  
+  if (Stats::commit()) {
+    $returnResult['success'] = "Transaction complete";        
+  } 
   
 
 
