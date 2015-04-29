@@ -1,6 +1,13 @@
 
 <?php
 require('DataObject.php');
+
+// FILL THESE IN WITH YOUR DB CREDENTIALS
+$dbServer = "";
+$dbUserName = "";
+$dbPassword = "";
+$database = "";
+
 runIt();
   function runIt() {
    $returnResult;
@@ -27,7 +34,7 @@ runIt();
     }
    }
   function getAllAppIdsByRank($jsonContent) {
-    $mysqli = new mysqli("localhost", "root", "Password1704", "API") or die ("error connecting to DB");
+    $mysqli = new mysqli($dbserver, $dbUserName, $dbPassword, $database) or die ("error connecting to DB");
     $sql = "SELECT `id` FROM `AppDetails`ORDER BY `rank` ASC LIMIT 0,".$jsonContent->limit;
     $result = $mysqli->query($sql) or die ("error");
     $list = array();
@@ -43,7 +50,7 @@ runIt();
     $list = array();
     $dataList = new DataObjectsList();
     $ids = $json->fields->id;
-    $mysqli = new mysqli("localhost", "root", "Password1704", "API") or die ("error connecting to DB");
+    $mysqli = new mysqli($dbServer, $dbUserName, $dbPassword, $database) or die ("error connecting to DB");
     if (isset($json->fields->AppDetails)) { 
       $queryParams = $json->fields->AppDetails;
       $table = "AppDetails";
